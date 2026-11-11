@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zápis teplot – Provozovna</title>
+<style>
+:root{
+  --bg:#07100d; --panel:#101d18; --panel2:#162820; --line:#294238;
+  --text:#eef5f1; --muted:#9eada6; --accent:#42df7b; --danger:#ff7068;
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+button,input,select{font:inherit} button{cursor:pointer;color:var(--text);background:#12211b;border:1px solid #315044;border-radius:11px;padding:10px 15px}
+button:hover{background:#1b3027}.primary{background:var(--accent);color:#06210f;border-color:var(--accent);font-weight:800}
+.danger{border-color:#713d39}.muted{color:var(--muted)}
+header{padding:22px 24px 12px;display:flex;justify-content:space-between;gap:20px;align-items:flex-end;position:sticky;top:0;background:rgba(7,16,13,.96);z-index:5;border-bottom:1px solid #1c3028}
+h1{margin:0;font-size:25px}.sub{margin-top:6px;color:var(--muted)}
+nav{display:flex;gap:8px;padding:12px 24px;border-bottom:1px solid #1d332a;position:sticky;top:76px;background:rgba(7,16,13,.96);z-index:4}
+nav button.active{background:#20382e;border-color:#4a6859}
+main{max-width:1450px;margin:auto;padding:22px 24px 60px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:18px}
+h2{font-size:20px;margin:0 0 15px}.week-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:25px 0 10px}
+table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px}
+th,td{border:1px solid #294238;padding:7px 6px;text-align:center;vertical-align:middle}
+th{background:#1b3027;font-weight:800} td.date{background:#172820;font-weight:800;width:7%}
+td.food{text-align:left}.week-end td{border-bottom:3px solid #8b9b92}
+.empty{color:#50665b}
+.bad{color:#ffb4ad;font-weight:800}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-start;justify-content:center;padding:30px 15px;z-index:20;overflow:auto}
+.modal{width:min(900px,100%);background:#0d1914;border:1px solid #315044;border-radius:18px;padding:20px;box-shadow:0 20px 80px #000}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.modal-head h2{margin:0}
+label{display:block;font-weight:700;margin-bottom:6px}.field{margin-bottom:13px}
+input,select{width:100%;padding:11px;border-radius:9px;border:1px solid #315044;background:#0a1511;color:var(--text)}
+.food-row{background:#14241d;border:1px solid #294238;border-radius:15px;padding:14px;margin:12px 0}
+.food-top{display:grid;grid-template-columns:1fr auto;gap:10px}.food-name{font-size:18px;font-weight:800}
+.measure-grid{display:grid;grid-template-columns:70px 120px 1fr 45px 70px 45px;gap:8px;align-items:center;margin-top:10px}
+.measure-grid .label{font-weight:800}.range{width:100%}.temp{font-size:20px;font-weight:800;text-align:center}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.modal-actions{display:flex;justify-content:space-between;gap:10px;margin-top:18px;position:sticky;bottom:-20px;background:#0d1914;padding:15px 0 0}
+.catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.catalog-item{display:flex;justify-content:space-between;align-items:center;background:#13231c;border:1px solid #294238;border-radius:10px;padding:12px}
+.settings{display:grid;grid-template-columns:1fr 1fr;gap:18px}.settings .full{grid-column:1/-1}
+.name-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.pill{background:#1a3027;border:1px solid #315044;border-radius:999px;padding:7px 11px}
+.archive-item{display:flex;justify-content:space-between;gap:15px;align-items:center;border:1px solid #294238;background:#13231c;padding:13px;border-radius:10px;margin:8px 0}
+.small{font-size:13px}.hidden{display:none}
+@media(max-width:800px){
+  header{position:static}.settings{grid-template-columns:1fr}.measure-grid{grid-template-columns:50px 95px 1fr 38px 60px 38px;font-size:13px}
+  table{font-size:12px} th,td{padding:5px 3px}
+}
+@media print{
+  body{background:white;color:#111;font-family:Arial,sans-serif}
+  header,nav,.toolbar,.no-print{display:none!important}
+  main{max-width:none;padding:0}
+  .print-title{display:block!important;text-align:center;margin:0 0 8px;font-size:16px}
+  .card{border:0;padding:0;margin:0}
+  table{font-size:9px;border-collapse:collapse}
+  th{background:#e8eee9!important;color:#111!important;border:1px solid #777}
+  td{border:1px solid #888;padding:3px;color:#111}
+  td.date{background:#eef2ef!important;color:#111}
+  .week-title{margin:8px 0 3px;font-size:11px;break-after:avoid}
+  .week-title button{display:none}
+  .week{break-inside:auto}
+  .week-end td{border-bottom:2px solid #777}
+  .print-page{break-after:auto}
+}
+.print-title{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div><h1 id="appTitle">Zápis teplot</h1><div class="sub" id="appSub">Provozovna · Listopad 2026</div></div>
+  <div class="no-print"><button onclick="openSettings()">⚙ Nastavení</button></div>
+</header>
+<nav class="no-print">
+  <button id="tab-records" class="active" onclick="showTab('records')">📋 Zápis teplot</button>
+  <button id="tab-catalog" onclick="showTab('catalog')">🍲 Katalog jídel</button>
+  <button id="tab-archive" onclick="showTab('archive')">🗄 Archiv</button>
+</nav>
+<main>
+<section id="records">
+  <div class="toolbar no-print">
+    <button onclick="changeMonth(-1)">‹</button><button onclick="changeMonth(1)">›</button>
+    <strong id="monthLabel"></strong>
+    <span style="flex:1"></span>
+    <button onclick="window.print()">🖨 Vytisknout aktuální stav</button>
+    <button class="primary" onclick="openDay(todayKey())">＋ Zapsat dnešek</button>
+  </div>
+  <div class="card">
+    <div class="print-title" id="printTitle"></div>
+    <div id="weeks"></div>
+  </div>
+</section>
+
+<section id="catalog" class="hidden">
+  <div class="card">
+    <h2>Katalog jídel</h2>
+    <div class="toolbar">
+      <input id="newFood" placeholder="Nové jídlo / jedna složka jídla" style="max-width:420px">
+      <button class="primary" onclick="addFood()">＋ Přidat do katalogu</button>
+    </div>
+    <div id="catalogList" class="catalog-grid"></div>
+  </div>
+</section>
+
+<section id="archive" class="hidden">
+  <div class="card"><h2>Archiv týdnů</h2><div id="archiveList"></div></div>
+</section>
+</main>
+
+<div id="modalBackdrop" class="modal-backdrop" onclick="if(event.target===this)closeModal()">
+<div class="modal">
+  <div class="modal-head"><h2 id="modalTitle">11. listopad 2026</h2><button onclick="closeModal()">Zavřít</button></div>
+  <div class="field"><label>Jméno</label><select id="person"></select></div>
+  <div id="foodRows"></div>
+  <div class="actions"><button onclick="addFoodRow()">＋ Přidat řádek</button><button onclick="copyYesterday()">Jídla ze včerejška</button></div>
+  <div class="modal-actions"><button class="danger" onclick="closeModal()">Zrušit</button><button class="primary" onclick="saveDay()">Uložit den</button></div>
+</div>
+</div>
+
+<div id="settingsBackdrop" class="modal-backdrop" onclick="if(event.target===this)closeSettings()">
+<div class="modal">
+  <div class="modal-head"><h2>Nastavení</h2><button onclick="closeSettings()">Zavřít</button></div>
+  <div class="settings">
+    <div class="field"><label>Název provozovny</label><input id="setPlace"></div>
+    <div class="field"><label>Rok</label><input id="setYear" type="number"></div>
+    <div class="field"><label>Výchozí teplota °C</label><input id="setTemp" type="number" min="60" max="90"></div>
+    <div class="field"><label>Minimální teplota °C</label><input id="setMinTemp" type="number" min="0" max="90"></div>
+    <div class="field full"><label>Jména</label><div style="display:flex;gap:8px"><input id="newName" placeholder="Např. Pavel Z."><button onclick="addName()">＋ Přidat</button></div><div id="names" class="name-list"></div></div>
+  </div>
+  <div class="modal-actions"><button onclick="closeSettings()">Zrušit</button><button class="primary" onclick="saveSettings()">Uložit nastavení</button></div>
+</div>
+</div>
+
+<script>
+const KEY='temperatureLogApp_v1';
+const months=['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
+const defaults={place:'Provozovna',year:2026,temp:70,minTemp:63,names:['Pavel Z.','Martin T.'],foods:['Svíčková omáčka','Vařené brambory','Kulajda','Gulášová','Rýže'],days:{}};
+let state=load(), currentMonth=new Date().getMonth(), currentYear=state.year, editingKey=null;
+
+function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){return {...defaults}}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(state))}
+function key(y,m,d){return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
+function todayKey(){let d=new Date();return key(d.getFullYear(),d.getMonth(),d.getDate())}
+function daysInMonth(y,m){return new Date(y,m+1,0).getDate()}
+function dateText(k){let [y,m,d]=k.split('-').map(Number);return `${d}. ${months[m-1]} ${y}`}
+function showTab(id){['records','catalog','archive'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));['records','catalog','archive'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('active',x===id));if(id==='catalog')renderCatalog();if(id==='archive')renderArchive()}
+function changeMonth(n){currentMonth+=n;if(currentMonth<0){currentMonth=11;currentYear--}if(currentMonth>11){currentMonth=0;currentYear++}render()}
+function render(){document.getElementById('appTitle').textContent='Zápis teplot';document.getElementById('appSub').textContent=`${state.place} · ${months[currentMonth]} ${currentYear}`;document.getElementById('monthLabel').textContent=`${months[currentMonth]} ${currentYear}`;document.getElementById('printTitle').textContent=`Zápis teplot – ${state.place} – ${months[currentMonth]} ${currentYear}`;renderWeeks()}
+function renderWeeks(){
+ const wrap=document.getElementById('weeks');wrap.innerHTML='';
+ const total=daysInMonth(currentYear,currentMonth);
+ for(let start=1;start<=total;start+=7){
+   const end=Math.min(start+6,total), weekNo=Math.floor((start-1)/7)+1;
+   const div=document.createElement('div');div.className='week';
+   div.innerHTML=`<div class="week-title"><h2>Týden ${weekNo}: ${start}.–${end}.</h2><button class="no-print" onclick="toggleLock(${weekNo})">${weekLocked(weekNo)?'🔒 Odemknout týden':'Uzamknout týden'}</button></div>`;
+   const table=document.createElement('table');
+   table.innerHTML='<thead><tr><th>Datum</th><th>Jídlo</th><th>Čas</th><th>°C</th><th>Čas 2</th><th>°C</th><th>Náprava</th><th>Jméno</th></tr></thead>';
+   const tb=document.createElement('tbody');
+   for(let d=start;d<=end;d++){let k=key(currentYear,currentMonth,d), rec=state.days[k]||{foods:[]};let foods=rec.foods||[];if(!foods.length)foods=[{}];
+     foods.forEach((f,i)=>{let tr=document.createElement('tr');if(i===foods.length-1)tr.classList.add('week-end');
+       tr.innerHTML=`${i===0?`<td class="date" rowspan="${foods.length}"><button class="no-print" style="padding:4px 7px" onclick="openDay('${k}')">${d}.${currentMonth+1}</button><span class="print-date">${d}.${currentMonth+1}</span></td>`:''}
+       <td class="food">${esc(f.name||'')}</td><td>${esc(f.time||'')}</td><td class="${Number(f.temp)<state.minTemp?'bad':''}">${f.temp??''}</td><td>${esc(f.time2||'')}</td><td class="${Number(f.temp2)<state.minTemp?'bad':''}">${f.temp2??''}</td><td>${esc(f.fix||'')}</td>${i===0?`<td rowspan="${foods.length}">${esc(rec.person||'')}</td>`:''}`;
+       tb.appendChild(tr)
+     })
+   }
+   table.appendChild(tb);div.appendChild(table);wrap.appendChild(div)
+ }
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function weekLocked(week){return !!state.locks?.[`${currentYear}-${currentMonth}-${week}`]}
+function toggleLock(week){state.locks=state.locks||{};let k=`${currentYear}-${currentMonth}-${week}`;if(state.locks[k]){if(confirm('Odemknout tento týden pro opravu?'))delete state.locks[k]}else state.locks[k]=true;persist();render()}
+function openDay(k){
+ editingKey=k;let rec=state.days[k]||{person:state.names[0]||'',foods:[]};document.getElementById('modalTitle').textContent=dateText(k);document.getElementById('person').innerHTML=state.names.map(n=>`<option ${n===rec.person?'selected':''}>${esc(n)}</option>`).join('');document.getElementById('foodRows').innerHTML='';
+ (rec.foods.length?rec.foods:[{}]).forEach(f=>addFoodRow(f));document.getElementById('modalBackdrop').style.display='flex'
+}
+function closeModal(){document.getElementById('modalBackdrop').style.display='none';editingKey=null}
+function addFoodRow(f={}){
+ const wrap=document.createElement('div');wrap.className='food-row';let id='r'+Date.now()+Math.random();let temp=f.temp??state.temp,temp2=f.temp2??'';
+ wrap.innerHTML=`<div class="food-top"><select class="food-select"><option value="">Vyber jídlo z katalogu…</option>${state.foods.map(x=>`<option ${x===f.name?'selected':''}>${esc(x)}</option>`).join('')}</select><button class="danger" onclick="this.closest('.food-row').remove()">Odebrat řádek</button></div>
+ <input class="new-food" style="margin-top:8px" placeholder="nebo napiš nové jídlo" value="${esc(f.name&&!state.foods.includes(f.name)?f.name:'')}">
+ <div class="measure-grid"><div class="label">Čas</div><button class="time1">${f.time||'Teď'}</button><input class="range temp1" type="range" min="60" max="90" value="${temp}"><button class="minus1">−</button><div class="temp tempVal1">${temp} °C</div><button class="plus1">+</button></div>
+ <div class="measure-grid"><div class="label">Čas 2</div><button class="time2">${f.time2||'Teď'}</button><input class="range temp2" type="range" min="60" max="90" value="${temp2||state.temp}"><button class="minus2">−</button><div class="temp tempVal2">${temp2?temp2+' °C':'–'}</div><button class="plus2">+</button></div>
+ <div class="actions"><input class="fix" placeholder="Náprava (jen když je teplota pod limitem)" value="${esc(f.fix||'')}"><button onclick="this.closest('.food-row').querySelector('.fix').value='Přihřáto'">Přihřáto</button><button onclick="this.closest('.food-row').querySelector('.fix').value='Přeměřeno'">Přeměřeno</button><button onclick="this.closest('.food-row').querySelector('.fix').value=''">Smazat teploty</button></div>`;
+ wrap.querySelector('.food-select').onchange=e=>{if(e.target.value)wrap.querySelector('.new-food').value=''};
+ wrap.querySelector('.new-food').oninput=e=>{if(e.target.value)wrap.querySelector('.food-select').value=''};
+ wrap.querySelector('.time1').onclick=()=>wrap.querySelector('.time1').textContent=now();
+ wrap.querySelector('.time2').onclick=()=>wrap.querySelector('.time2').textContent=now();
+ ['1','2'].forEach(n=>{let r=wrap.querySelector('.temp'+n),v=wrap.querySelector('.tempVal'+n);r.oninput=()=>v.textContent=r.value+' °C';wrap.querySelector('.minus'+n).onclick=()=>{r.value=Math.max(60,+r.value-1);r.oninput()};wrap.querySelector('.plus'+n).onclick=()=>{r.value=Math.min(90,+r.value+1);r.oninput()}});
+ document.getElementById('foodRows').appendChild(wrap)
+}
+function now(){return new Date().toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'})}
+function saveDay(){
+ let foods=[...document.querySelectorAll('.food-row')].map(r=>{let name=r.querySelector('.new-food').value.trim()||r.querySelector('.food-select').value;return{name,time:r.querySelector('.time1').textContent==='Teď'?'':r.querySelector('.time1').textContent,temp:+r.querySelector('.temp1').value,time2:r.querySelector('.time2').textContent==='Teď'?'':r.querySelector('.time2').textContent,temp2:r.querySelector('.temp2').value,fix:r.querySelector('.fix').value.trim()}}).filter(x=>x.name);
+ if(!foods.length){alert('Přidej alespoň jedno jídlo.');return}
+ foods.forEach(f=>{if(!state.foods.includes(f.name))state.foods.push(f.name)});
+ state.days[editingKey]={person:document.getElementById('person').value,foods};persist();closeModal();render()
+}
+function copyYesterday(){let [y,m,d]=editingKey.split('-').map(Number),prev=key(d===1?y:y,m,d-1);let r=state.days[prev];if(!r)return alert('Včerejší záznam není k dispozici.');document.getElementById('foodRows').innerHTML='';r.foods.forEach(f=>addFoodRow({...f,time:'',time2:'',temp:state.temp,temp2:''}))}
+function addFood(){let x=document.getElementById('newFood').value.trim();if(!x)return;if(!state.foods.includes(x))state.foods.push(x);document.getElementById('newFood').value='';persist();renderCatalog()}
+function renderCatalog(){document.getElementById('catalogList').innerHTML=state.foods.map((f,i)=>`<div class="catalog-item"><span>${esc(f)}</span><button class="danger" onclick="removeFood(${i})">Smazat</button></div>`).join('')}
+function removeFood(i){if(confirm('Smazat jídlo z katalogu? Historické zápisy zůstanou.')){state.foods.splice(i,1);persist();renderCatalog()}}
+function openSettings(){document.getElementById('setPlace').value=state.place;document.getElementById('setYear').value=state.year;document.getElementById('setTemp').value=state.temp;document.getElementById('setMinTemp').value=state.minTemp;renderNames();document.getElementById('settingsBackdrop').style.display='flex'}
+function closeSettings(){document.getElementById('settingsBackdrop').style.display='none'}
+function renderNames(){document.getElementById('names').innerHTML=state.names.map((n,i)=>`<span class="pill">${esc(n)} <button style="padding:2px 6px" onclick="removeName(${i})">×</button></span>`).join('')}
+function addName(){let n=document.getElementById('newName').value.trim();if(n&&!state.names.includes(n)){state.names.push(n);document.getElementById('newName').value='';renderNames()}}
+function removeName(i){state.names.splice(i,1);renderNames()}
+function saveSettings(){state.place=document.getElementById('setPlace').value.trim()||'Provozovna';state.year=+document.getElementById('setYear').value||2026;state.temp=Math.max(60,Math.min(90,+document.getElementById('setTemp').value||70));state.minTemp=Math.max(0,Math.min(90,+document.getElementById('setMinTemp').value||63));persist();currentYear=state.year;closeSettings();render()}
+function renderArchive(){
+ const el=document.getElementById('archiveList');let keys=Object.keys(state.locks||{});if(!keys.length){el.innerHTML='<p class="muted">Zatím není uzamčen žádný týden.</p>';return}
+ el.innerHTML=keys.map(k=>{let [y,m,w]=k.split('-');return `<div class="archive-item"><span><strong>${months[+m]} ${y}</strong> · Týden ${+w}</span><button onclick="currentYear=+y;currentMonth=+m;showTab('records');render()">Otevřít</button></div>`}).join('')
+}
+render();
+</script>
+</body>
+</html>
